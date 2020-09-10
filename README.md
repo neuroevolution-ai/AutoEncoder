@@ -23,7 +23,7 @@ Außerdem sind die Losswerte von Trainingsdatensatz und Testdatensatz im Trainin
 Aufbau des Ordners ist die Aufteilung der Auto-Encoder-Architektur und dann nach dem Datensatz, mit welchem trainiert worden ist.
 Der Auto-Encoder 4 in Graustufen- und RGB-Form erreicht die besten Ergebnisse.
 
-#Install
+# Install
 
 1. Clonen Sie das Repository
 2. Downloaden Sie die den notwendigen Datensatz: http://atarigrandchallenge.com/data und legen Sie ihn auf die selbe Ebene der Pythondateien im Repository
