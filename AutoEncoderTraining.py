@@ -14,6 +14,8 @@ https://github.com/ctallec/world-models
 Zur Orientierung diente das Tutorial https://www.kaggle.com/jagadeeshkotra/autoencoders-with-pytorch
 Teile des Codes wurden aus dem Tutorial übernommen.
 """
+import sys
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -28,395 +30,17 @@ from visdom import Visdom
 import utils
 import statistics
 import csv
-
-"""
-Auto-Encoder 1 - kann mit RGB-Bildern umgehen
-"""
-class AutoEncoder1(nn.Module):
-
-
-    def __init__(self):
-        super(AutoEncoder1, self).__init__()
-
-        # encoder
-        self.conv1 = nn.Conv2d(3, 32, kernel_size=4, stride=2)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=4, stride=2)
-        self.conv3 = nn.Conv2d(64, 128, kernel_size=4, stride=2)
-        self.conv4 = nn.Conv2d(128, 256, kernel_size=4, stride=2)
-
-        # Latent View
-        self.lv1 = nn.Linear(22528, 400)
-        self.lv2 = nn.Linear(400, 30)
-        self.lv3 = nn.Linear(30, 22528)
-
-        #Decoder
-        self.deconv1 = nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2)
-        self.deconv2 = nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, output_padding=(1,0))
-        self.deconv3 = nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, output_padding=(0,1))
-        self.deconv4 = nn.ConvTranspose2d(32, 3, kernel_size=4, stride=2)
-
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.conv3(x))
-        x = F.relu(self.conv4(x))
-        originalC = x.size(1)
-        originalH = x.size(2)
-        originalW = x.size(3)
-        x = x.view(x.size(0), -1)
-        x = torch.sigmoid(self.lv1(x))
-        x = torch.sigmoid(self.lv2(x))
-        x = torch.sigmoid(self.lv3(x))
-        x = x.view(x.size(0), originalC, originalH, originalW)
-        x = F.relu(self.deconv1(x))
-        x = F.relu(self.deconv2(x))
-        x = F.relu(self.deconv3(x))
-        x = F.relu(self.deconv4(x))
-        x = x[:, :, :210, :160]
-        return x
-
-"""
-Auto-Encoder 1 - kann mit Graustufen-Bildern umgehen
-"""
-class AutoEncoder1Grey(nn.Module):
-
-
-    def __init__(self):
-        super(AutoEncoder1Grey, self).__init__()
-
-        # encoder
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=4, stride=2)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=4, stride=2)
-        self.conv3 = nn.Conv2d(64, 128, kernel_size=4, stride=2)
-        self.conv4 = nn.Conv2d(128, 256, kernel_size=4, stride=2)
-
-        # Latent View
-        self.lv1 = nn.Linear(22528, 400)
-        self.lv2 = nn.Linear(400, 30)
-        self.lv3 = nn.Linear(30, 22528)
-
-        #Decoder
-        self.deconv1 = nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2)
-        self.deconv2 = nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, output_padding=(1,0))
-        self.deconv3 = nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, output_padding=(0,1))
-        self.deconv4 = nn.ConvTranspose2d(32, 1, kernel_size=4, stride=2)
-
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.conv3(x))
-        x = F.relu(self.conv4(x))
-        originalC = x.size(1)
-        originalH = x.size(2)
-        originalW = x.size(3)
-        x = x.view(x.size(0), -1)
-        x = torch.sigmoid(self.lv1(x))
-        x = torch.sigmoid(self.lv2(x))
-        x = torch.sigmoid(self.lv3(x))
-        x = x.view(x.size(0), originalC, originalH, originalW)
-        x = F.relu(self.deconv1(x))
-        x = F.relu(self.deconv2(x))
-        x = F.relu(self.deconv3(x))
-        x = F.relu(self.deconv4(x))
-        x = x[:, :, :210, :160]
-        return x
-
-"""
-Auto-Encoder 2 - kann mit RGB-Bildern umgehen
-"""
-class AutoEncoder2(nn.Module):
-
-
-    def __init__(self):
-        super(AutoEncoder2, self).__init__()
-
-        # encoder
-        self.conv1 = nn.Conv2d(3, 20, kernel_size=5, stride=3)
-        self.conv2 = nn.Conv2d(20, 40, kernel_size=8, stride=4)
-
-        # Latent View
-        self.lv1 = nn.Linear(7680, 400)
-        self.lv2 = nn.Linear(400, 30)
-        self.lv3 = nn.Linear(30, 400)
-        self.lv4 = nn.Linear(400, 7680)
-
-        #Decoder
-        self.deconv1 = nn.ConvTranspose2d(40, 20, kernel_size=8, stride=4, output_padding=(1, 0))
-        self.deconv2 = nn.ConvTranspose2d(20, 3, kernel_size=5, stride=3, output_padding=(1, 2))
-
-
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        originalC = x.size(1)
-        originalH = x.size(2)
-        originalW = x.size(3)
-        x = x.view(x.size(0), -1)
-        x = torch.sigmoid(self.lv1(x))
-        x = torch.sigmoid(self.lv2(x))
-        x = torch.sigmoid(self.lv3(x))
-        x = torch.sigmoid(self.lv4(x))
-        x = x.view(x.size(0), originalC, originalH, originalW)
-        x = F.relu(self.deconv1(x))
-        x = F.relu(self.deconv2(x))
-        return x
-
-"""
-Auto-Encoder 2 - kann mit Graustufen-Bildern umgehen
-"""
-class AutoEncoder2Grey(nn.Module):
-
-
-    def __init__(self):
-        super(AutoEncoder2Grey, self).__init__()
-
-        # encoder
-        self.conv1 = nn.Conv2d(1, 20, kernel_size=5, stride=3)
-        self.conv2 = nn.Conv2d(20, 40, kernel_size=8, stride=4)
-
-        # Latent View
-        self.lv1 = nn.Linear(7680, 400)
-        self.lv2 = nn.Linear(400, 30)
-        self.lv3 = nn.Linear(30, 400)
-        self.lv4 = nn.Linear(400, 7680)
-
-        #Decoder
-        self.deconv1 = nn.ConvTranspose2d(40, 20, kernel_size=8, stride=4, output_padding=(1, 0))
-        self.deconv2 = nn.ConvTranspose2d(20, 1, kernel_size=5, stride=3, output_padding=(1, 2))
-
-
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        originalC = x.size(1)
-        originalH = x.size(2)
-        originalW = x.size(3)
-        x = x.view(x.size(0), -1)
-        x = torch.sigmoid(self.lv1(x))
-        x = torch.sigmoid(self.lv2(x))
-        x = torch.sigmoid(self.lv3(x))
-        x = torch.sigmoid(self.lv4(x))
-        x = x.view(x.size(0), originalC, originalH, originalW)
-        x = F.relu(self.deconv1(x))
-        x = F.relu(self.deconv2(x))
-        return x
-
-"""
-Auto-Encoder 3 - kann mit RGB-Bildern umgehen
-"""
-class AutoEncoder3(nn.Module):
-
-    def __init__(self):
-        super(AutoEncoder3, self).__init__()
-
-        # encoder
-        self.conv1 = nn.Conv2d(3, 20, kernel_size=5, stride=1, padding=(2,2))
-        self.maxpool1 = nn.MaxPool2d(kernel_size=4, stride=4, return_indices=True)
-        self.conv2 = nn.Conv2d(20, 40, kernel_size=7, stride=1, padding=(3,3))
-        self.maxpool2 = nn.MaxPool2d(kernel_size=4, stride=4, return_indices=True)
-
-        # Latent View
-        self.lv1 = nn.Linear(5200, 400)
-        self.lv2 = nn.Linear(400, 30)
-        self.lv3 = nn.Linear(30, 400)
-        self.lv4 = nn.Linear(400, 5200)
-
-        #decoder
-        self.unmaxpool1 = nn.MaxUnpool2d(kernel_size=4, stride=4)
-        self.deconv1 = nn.ConvTranspose2d(40, 20, kernel_size=7, stride=1)
-        self.unmaxpool2 = nn.MaxUnpool2d(kernel_size=4, stride=4)
-        self.deconv2 = nn.ConvTranspose2d(20, 3, kernel_size=5, stride=1)
-
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x,indices1 = self.maxpool1(x)
-        x = F.relu(self.conv2(x))
-        x,indices2 = self.maxpool2(x)
-        originalC = x.size(1)
-        originalH = x.size(2)
-        originalW = x.size(3)
-        x = x.view(x.size(0), -1)
-        x = torch.sigmoid(self.lv1(x))
-        x = torch.sigmoid(self.lv2(x))
-        x = torch.sigmoid(self.lv3(x))
-        x = torch.sigmoid(self.lv4(x))
-        x = x.view(x.size(0), originalC, originalH, originalW)
-        x = self.unmaxpool1(x,indices2)
-        x = F.relu(self.deconv1(x))
-        x = x[:, :, :52, :40]
-        x = self.unmaxpool2(x,indices1, output_size=torch.Size([x.size(0),x.size(1),210,160]))
-        x = F.relu(self.deconv2(x))
-        x = x[:, :, :210, :160]
-        return x
-
-"""
-Auto-Encoder 3 - kann mit Graustufen-Bildern umgehen
-"""
-class AutoEncoder3Grey(nn.Module):
-    def __init__(self):
-        super(AutoEncoder3Grey, self).__init__()
-        # encoder
-        self.conv1 = nn.Conv2d(1, 20, kernel_size=5, stride=1, padding=(2,2))
-        self.maxpool1 = nn.MaxPool2d(kernel_size=4, stride=4, return_indices=True)
-        self.conv2 = nn.Conv2d(20, 40, kernel_size=7, stride=1, padding=(3,3))
-        self.maxpool2 = nn.MaxPool2d(kernel_size=4, stride=4, return_indices=True)
-
-        # Latent View
-        self.lv1 = nn.Linear(5200, 400)
-        self.lv2 = nn.Linear(400, 30)
-        self.lv3 = nn.Linear(30, 400)
-        self.lv4 = nn.Linear(400, 5200)
-
-        #Decoder
-        self.unmaxpool1 = nn.MaxUnpool2d(kernel_size=4, stride=4)
-        self.deconv1 = nn.ConvTranspose2d(40, 20, kernel_size=7, stride=1)
-        self.unmaxpool2 = nn.MaxUnpool2d(kernel_size=4, stride=4)
-        self.deconv2 = nn.ConvTranspose2d(20, 1, kernel_size=5, stride=1)
-
-
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x,indices1 = self.maxpool1(x)
-        x = F.relu(self.conv2(x))
-        x,indices2 = self.maxpool2(x)
-        originalC = x.size(1)
-        originalH = x.size(2)
-        originalW = x.size(3)
-        x = x.view(x.size(0), -1)
-        x = torch.sigmoid(self.lv1(x))
-        x = torch.sigmoid(self.lv2(x))
-        x = torch.sigmoid(self.lv3(x))
-        x = torch.sigmoid(self.lv4(x))
-        x = x.view(x.size(0), originalC, originalH, originalW)
-        x = self.unmaxpool1(x,indices2)
-        x = F.relu(self.deconv1(x))
-        x = x[:, :, :52, :40]
-        x = self.unmaxpool2(x,indices1, output_size=torch.Size([x.size(0),x.size(1),210,160]))
-        x = F.relu(self.deconv2(x))
-        x = x[:, :, :210, :160]
-        return x
-
-"""
-Auto-Encoder 4 - kann mit RGB-Bildern umgehen
-"""
-class AutoEncoder4(nn.Module):
-
-    def __init__(self):
-        super(AutoEncoder4, self).__init__()
-
-        # encoder
-        self.conv1 = nn.Conv2d(3, 20, kernel_size=5, stride=1, padding=(2, 2))
-        self.maxpool1 = nn.MaxPool2d(kernel_size=4, stride=4, return_indices=True)
-        self.conv2 = nn.Conv2d(20, 40, kernel_size=7, stride=1, padding=(3, 3))
-        self.maxpool2 = nn.MaxPool2d(kernel_size=4, stride=4, return_indices=True)
-
-        # Latent View
-
-        self.lv1 = nn.Linear(5200, 400)
-        self.lv2 = nn.Linear(400, 30)
-
-        self.fc_mu = nn.Linear(30, 30)
-        self.fc_logsigma = nn.Linear(30, 30)
-
-        self.lv3 = nn.Linear(30, 400)
-        self.lv4 = nn.Linear(400, 5200)
-
-        #Decoder
-        self.unmaxpool1 = nn.MaxUnpool2d(kernel_size=4, stride=4)
-        self.deconv1 = nn.ConvTranspose2d(40, 20, kernel_size=7, stride=1)
-        self.unmaxpool2 = nn.MaxUnpool2d(kernel_size=4, stride=4)
-        self.deconv2 = nn.ConvTranspose2d(20, 3, kernel_size=5, stride=1)
-
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x, indices1 = self.maxpool1(x)
-        x = F.relu(self.conv2(x))
-        x, indices2 = self.maxpool2(x)
-        originalC = x.size(1)
-        originalH = x.size(2)
-        originalW = x.size(3)
-        x = x.view(x.size(0), -1)
-        x = torch.sigmoid(self.lv1(x))
-        x = torch.sigmoid(self.lv2(x))
-        mu = self.fc_mu(x)
-        logsigma = self.fc_logsigma(x)
-        sigma = logsigma.exp()
-        eps = torch.randn_like(sigma)
-        x = eps.mul(sigma).add_(mu)
-        x = torch.sigmoid(self.lv3(x))
-        x = torch.sigmoid(self.lv4(x))
-        x = x.view(x.size(0), originalC, originalH, originalW)
-        x = self.unmaxpool1(x, indices2)
-        x = F.relu(self.deconv1(x))
-        x = x[:, :, :52, :40]
-        x = self.unmaxpool2(x, indices1, output_size=torch.Size([x.size(0), x.size(1), 210, 160]))
-        x = F.relu(self.deconv2(x))
-        x = x[:, :, :210, :160]
-        return x
-
-"""
-Auto-Encoder 4 - kann mit Graustufen-Bildern umgehen
-"""
-class AutoEncoder4Grey(nn.Module):
-    def __init__(self):
-        super(AutoEncoder4Grey, self).__init__()
-
-        self.conv1 = nn.Conv2d(1, 20, kernel_size=5, stride=1, padding=(2,2))
-        self.maxpool1 = nn.MaxPool2d(kernel_size=4, stride=4, return_indices=True)
-        self.conv2 = nn.Conv2d(20, 40, kernel_size=7, stride=1, padding=(3, 3))
-        self.maxpool2 = nn.MaxPool2d(kernel_size=4, stride=4, return_indices=True)
-
-        # Latent View
-
-        self.lv1 = nn.Linear(5200, 400)
-        self.lv2 = nn.Linear(400, 30)
-
-        self.fc_mu = nn.Linear(30, 30)
-        self.fc_logsigma = nn.Linear(30, 30)
-
-        self.lv3 = nn.Linear(30, 400)
-        self.lv4 = nn.Linear(400, 5200)
-
-        #Decoder
-        self.unmaxpool1 = nn.MaxUnpool2d(kernel_size=4, stride=4)
-        self.deconv1 = nn.ConvTranspose2d(40, 20, kernel_size=7, stride=1)
-        self.unmaxpool2 = nn.MaxUnpool2d(kernel_size=4, stride=4)
-        self.deconv2 = nn.ConvTranspose2d(20, 1, kernel_size=5, stride=1)
-
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x, indices1 = self.maxpool1(x)
-        x = F.relu(self.conv2(x))
-        x, indices2 = self.maxpool2(x)
-        originalC = x.size(1)
-        originalH = x.size(2)
-        originalW = x.size(3)
-        x = x.view(x.size(0), -1)
-        x = torch.sigmoid(self.lv1(x))
-        x = torch.sigmoid(self.lv2(x))
-        mu = self.fc_mu(x)
-        logsigma = self.fc_logsigma(x)
-        sigma = logsigma.exp()
-        eps = torch.randn_like(sigma)
-        x = eps.mul(sigma).add_(mu)
-        x = torch.sigmoid(self.lv3(x))
-        x = torch.sigmoid(self.lv4(x))
-        x = x.view(x.size(0), originalC, originalH, originalW)
-        x = self.unmaxpool1(x, indices2)
-        x = F.relu(self.deconv1(x))
-        x = x[:, :, :52, :40]
-        x = self.unmaxpool2(x, indices1, output_size=torch.Size([x.size(0), x.size(1), 210, 160]))
-        x = F.relu(self.deconv2(x))
-        x = x[:, :, :210, :160]
-        return x
+import argparse
+
+#Auto-Encoder importieren
+import AutoEncoder1
+import AutoEncoder1Grey
+import AutoEncoder2
+import AutoEncoder2Grey
+import AutoEncoder3
+import AutoEncoder3Grey
+import AutoEncoder4
+import AutoEncoder4Grey
 
 """
 Funktion lädt den Datensatz
@@ -533,10 +157,10 @@ def startAutoEncoder(dataset):
     Hier kann manuell die Auto-Encoder-Architektur gewählt werden 
     Zur Auswahl stehen nur die Auto-Encoder, die RGB-Bilder verarbeiten können.
     """
-    #ae = AutoEncoder1()
+    ae = AutoEncoder1.AutoEncoder1()
     #ae = AutoEncoder2()
     #ae = AutoEncoder3()
-    ae = AutoEncoder4()
+    #ae = AutoEncoder4()
     ae.to(torch.device("cuda:0"))
     print(ae)
 
@@ -906,12 +530,8 @@ def startAutoEncoderGrey(dataset):
     #Speichern des trainierten Auto-Encoders
     torch.save(ae.state_dict(), pathEvaluation)
 
-if __name__ == '__main__':
+def startAE(autoencoder, dataset, grey):
 
-    global myDataYTrain
-    global myDataXTrain
-    global myDataYTest
-    global myDataXTest
     myDataYTrain = []
     myDataXTrain = []
     myDataYTest = []
@@ -920,51 +540,182 @@ if __name__ == '__main__':
     myDataXTrain.append(0)
     myDataYTest.append(0)
     myDataXTest.append(0)
-    """
-    Auswahl an Datensätzen:
-    
-    SmallDataset_JustQbert
-    SmallDataset_Q*Bert_Mixed
-    SmallDataset_Q*Bert_Mixed_Greyscale
-    SmallDataset_SpaceInvaders (Training Split in two seperate Arrays)
-    SmallDataset_SpaceInvaders_Greyscale (Training Split in two seperate Arrays)
-    
-    """
-    datasetChoice = 'SmallDataset_JustQbert'
-    global evaluationsfolder
-    evaluationsfolder = '/home/annika/Bachelorarbeit/Evaluationsergebnisse/AutoEncoder_RGB_4/Q*Bert_JustQBert'
 
-    if (datasetChoice == 'SmallDataset_SpaceInvaders'):
-        grey = False
-    elif(datasetChoice == 'SmallDataset_Q*Bert_Mixed'):
-        grey = False
-    elif(datasetChoice == 'SmallDataset_JustQbert'):
-        grey = False
-    elif(datasetChoice == 'SmallDataset_Q*Bert_Mixed_Greyscale'):
-        grey = True
-    elif (datasetChoice == 'SmallDataset_SpaceInvaders_Greyscale'):
-        grey = True
+    # Überprüfung welcher Datensatz als Grundlage verwendet werden soll, anschließendes Laden des Datensatzes
+    if(grey):
+        if (dataset == 'SmallDataset_Q*Bert_Mixed_Greyscale'):
+            split = False
+            datasetTrain = load_dataset(
+                '/home/annika/BA-Datensaetze/SmallDataset_Q*Bert_Mixed_Greyscale/SmallDatasetTraining_Q*Bert_Mixed_Greyscale.npy')
+            datasetTest = load_dataset(
+                '/home/annika/BA-Datensaetze/SmallDataset_Q*Bert_Mixed_Greyscale/SmallDatasetTest_Q*Bert_Mixed_Greyscale.npy')
+            title = 'Auto-Encoder mit SmallDatasetTest_Q*Bert_Mixed_Greyscale'
 
-    global episode
-    episode = 1
+        elif (dataset == 'SmallDataset_SpaceInvaders_Greyscale'):
+            split = True
+            datasetTrain = load_dataset(
+                '/home/annika/BA-Datensaetze/SmallDataset_SpaceInvaders_Greyscale/smallDatasetTraining1_SpaceInvaders_Greyscale.npy')
+            datasetTrain2 = load_dataset(
+                '/home/annika/BA-Datensaetze/SmallDataset_SpaceInvaders_Greyscale/smallDatasetTraining2_SpaceInvaders_Greyscale.npy')
+            datasetTest = load_dataset(
+                '/home/annika/BA-Datensaetze/SmallDataset_SpaceInvaders_Greyscale/smallDatasetTest_SpaceInvaders_Greyscale.npy')
+            title = 'Auto-Encoder mit SmallDataset_SpaceInvaders_Greyscale'
 
-    #Auto-Encoder-Training speichern trainierten Auto-Encoder speichern. Verfahren wird 3x ausgeführt.
-    for i in range(3):
-        if (grey):
-            startAutoEncoderGrey(datasetChoice)
+        # Bild aus dem Trainingsdatensatz laden, dient zur Kontrolle
+        TrainingImage = Image.fromarray(datasetTrain[10])
+        plt.imshow(TrainingImage, cmap=plt.get_cmap('gray'))
+        plt.show()
+
+        # Bild aus dem Testdatensatz laden, dient zur Kontrolle
+        TestImage = Image.fromarray(datasetTest[10])
+        plt.imshow(TestImage, cmap=plt.get_cmap('gray'))
+        plt.show()
+
+    else:
+        if (dataset == 'SmallDataset_SpaceInvaders'):
+            split = True
+            grey = False
+            datasetTrain = load_dataset(
+                '/home/annika/BA-Datensaetze/SmallDataset_SpaceInvaders/smallDatasetTraining1_SpaceInvaders.npy')
+            datasetTrain2 = load_dataset(
+                '/home/annika/BA-Datensaetze/SmallDataset_SpaceInvaders/smallDatasetTraining2_SpaceInvaders.npy')
+            datasetTest = load_dataset(
+                '/home/annika/BA-Datensaetze/SmallDataset_SpaceInvaders/smallDatasetTest_SpaceInvaders.npy')
+            title = 'Auto-Encoder mit SmallDataset_SpaceInvaders'
+        elif (dataset == 'SmallDataset_Q*Bert_Mixed'):
+            split = False
+            grey = False
+            datasetTrain = load_dataset('/home/annika/BA-Datensaetze/SmallDataset_Q*Bert_Mixed/smallDatasetTraining.npy')
+            datasetTest = load_dataset('/home/annika/BA-Datensaetze/SmallDataset_Q*Bert_Mixed/smallDatasetTest.npy')
+            title = 'Auto-Encoder mit SmallDataset_Q*Bert_Mixed'
+        elif (dataset == 'SmallDataset_JustQbert'):
+            split = False
+            grey = False
+            datasetTrain = load_dataset(
+                '/home/annika/BA-Datensaetze/SmallDataset_JustQBert/smallDatasetTraining_JustQBert.npy')
+            datasetTest = load_dataset('/home/annika/BA-Datensaetze/SmallDataset_Q*Bert_Mixed/smallDatasetTest.npy')
+            title = 'Auto-Encoder mit SmallDataset_Q*Bert_JustQBert'
+
+        # Bild aus dem Trainingsdatensatz laden, dient zur Kontrolle
+        TrainingImage = Image.fromarray(datasetTrain[10])
+        plt.imshow(TrainingImage)
+        plt.show()
+
+        # Bild aus dem Testdatensatz laden, dient zur Kontrolle
+        TestImage = Image.fromarray(datasetTest[10])
+        plt.imshow(TestImage)
+        plt.show()
+
+    # Aufbau Trainingsdatensatz
+    print("Training Datensatz:")
+    print(len(datasetTrain))
+    print(datasetTrain[10].shape)
+
+    if(split):
+        # Aufbau Trainingsdatensatz2
+        print("Training Datensatz 2:")
+        print(len(datasetTrain2))
+        print(datasetTrain2[10].shape)
+
+    # Aufbau Testdatensatz
+    print("Test Datensatz:")
+    print(len(datasetTest))
+    print(datasetTest[10].shape)
+
+    #Auto-Encoder wird geladen
+    if(grey):
+        if (autoencoder == 'AE1GS'):
+            ae = AutoEncoder1Grey.AutoEncoder1Grey()
+        elif (autoencoder == 'AE2GS'):
+            ae = AutoEncoder2Grey.AutoEncoder2Grey()
+        elif (autoencoder == 'AE3GS'):
+            ae = AutoEncoder3Grey.AutoEncoder3Grey()
+        elif (autoencoder == 'AE4GS'):
+            ae = AutoEncoder4Grey.AutoEncoder4Grey()
         else:
-            startAutoEncoder(datasetChoice)
+            print('Der Auto-Encoder {} kann nicht mit dem Datensatz {} trainiert werden.'.format(autoencoder,dataset))
+    else:
+        if (autoencoder == 'AE1RGB'):
+            ae = AutoEncoder1.AutoEncoder1()
+        elif (autoencoder == 'AE2RGB'):
+            ae = AutoEncoder2.AutoEncoder2()
+        elif (autoencoder == 'AE3RGB'):
+            ae = AutoEncoder3.AutoEncoder3()
+        elif (autoencoder == 'AE4RGB'):
+            ae = AutoEncoder4.AutoEncoder4()
+        else:
+            print('Der Auto-Encoder {} kann nicht mit dem Datensatz {} trainiert werden.'.format(autoencoder, dataset))
 
-        myData = np.array([myDataXTrain, myDataYTrain, myDataYTest]).transpose()
 
-        pathEvaluation = evaluationsfolder + "/" + 'Episode{}/LossAndVal.csv'.format(episode)
-        myFile = open(pathEvaluation, 'w')
-        with myFile:
-            writer = csv.writer(myFile)
-            writer.writerows(myData)
+    ae.to(torch.device("cuda:0"))
+    print(ae)
 
-        episode = episode + 1
-        myDataYTrain = []
-        myDataXTrain = []
-        myDataYTest = []
-        myDataXTest = []
+    # definiert die Loss-Funktion und den Optimizer
+    loss_func = nn.MSELoss()
+    optimizer = torch.optim.Adamax(ae.parameters(), lr=4e-4)
+
+    # startet den Plot
+    global plotter
+    plotter = VisdomLinePlotter(env_name='Tutorial Plots')
+
+    myData = np.array([myDataXTrain, myDataYTrain, myDataYTest]).transpose()
+
+    pathEvaluation = evaluationsfolder + "/" + 'Episode{}/LossAndVal.csv'.format(episode)
+    myFile = open(pathEvaluation, 'w')
+    with myFile:
+        writer = csv.writer(myFile)
+        writer.writerows(myData)
+
+
+
+if __name__ == '__main__':
+
+    #Relativer Pfad für den Speicherort des trainierten Auto-Encoders und der Trainings- und Validierungsverläufe
+    evaluationsfolder 
+
+
+    autoencoder = input("\nWelche Auto-Encoder-Architektur soll gewählt werden?\n\n"
+                 "Geben Sie das Kürzel hinter der gewünschten Architektur an.\n"
+                 "Auto-Encoder 1: AE1\n"
+                 "Auto-Encoder 1: AE2\n"
+                 "Auto-Encoder 1: AE3\n"
+                 "Auto-Encoder 1: AE4\n"
+                 "Ihre Wahl ist: ")
+    if(not(autoencoder == 'AE1' or autoencoder == 'AE2' or autoencoder == 'AE3' or autoencoder == 'AE4')):
+        print("\n\nSie haben keine gültige Architektur gewählt. Das Programm bricht ab.")
+        sys.exit()
+    print('\nSie haben die Architektur {} gewählt.'.format(autoencoder))
+    datasetChoice = input("\n\nMit welchem Datensatz soll der Auto-Encoder trainiert werden?\n\n"
+                        "Geben Sie das Kürzel hinter der gewünschten Architektur an.\n"
+                        "Q*Bert - RGB JustQbert: 1\n"
+                        "Q*Bert - RGB Mixed: 2\n"
+                        "Q*bert - Graustufen: 3\n"
+                        "SPACE INVADERS - RGB: 4\n"
+                        "SPACE INVADERS - Graustufen: 5\n"
+                        "Ihre Wahl ist: ")
+    if (not (datasetChoice == '1' or datasetChoice == '2' or datasetChoice == '3' or datasetChoice == '4' or datasetChoice == '5')):
+        print("\n\nSie haben keinen gültigen Datensatz ausgewählt. Das Programm bricht ab.")
+        sys.exit()
+
+    if (datasetChoice == '1'):
+        grey = False
+        autoencoder = autoencoder + "RGB"
+        dataset = 'SmallDataset_JustQbert'
+    elif(datasetChoice == '2'):
+        grey = False
+        autoencoder = autoencoder + "RGB"
+        dataset = 'SmallDataset_Q*Bert_Mixed'
+    elif(datasetChoice == '3'):
+        grey = True
+        autoencoder = autoencoder + "GS"
+        dataset = 'SmallDataset_Q*Bert_Mixed_Greyscale'
+    elif(datasetChoice == '4'):
+        grey = False
+        autoencoder = autoencoder + "RGB"
+        dataset = 'SmallDataset_SpaceInvaders'
+    elif (datasetChoice == '5'):
+        grey = True
+        autoencoder = autoencoder + "GS"
+        dataset = 'SmallDataset_SpaceInvaders_Greyscale'
+
+    startAE(autoencoder,dataset,grey)
