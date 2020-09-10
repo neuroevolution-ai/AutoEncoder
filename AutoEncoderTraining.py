@@ -4,9 +4,19 @@ Code ist im Rahmen der Bachelorarbeit von Annika Kies am FZI Karlsruhe mit dem T
 entstanden.
 
 Code dient zum Training eines Auto-Encoders,
-trainierter Auto-Encoder kann danach gespeichert werden.
+trainierter Auto-Encoder wird danach in einem (neuen) Ordner gespeichert.
 
 Implementiert sind vier Auto-Encoder Architekturen.
+Es können 5 verschiedene Datensätze verwendet werden.
+
+Folgende Datensätze stehen zur Verfügung:
+
+    Q*Bert - RGB JustQbert
+    Q*Bert - RGB Mixed
+    Q*bert - Graustufen
+    SPACE INVADERS - RGB
+    SPACE INVADERS - Graustufen
+
 AutoEncoder1 orientiert sich an:
 Paper: Ha and Schmidhuber, "World Models", 2018. https://doi.org/10.5281/zenodo.1207631.
 https://github.com/ctallec/world-models
@@ -411,7 +421,7 @@ if __name__ == '__main__':
         sys.exit()
     print('\nSie haben die Architektur {} gewählt.'.format(autoencoder))
     datasetChoice = input("\n\nMit welchem Datensatz soll der Auto-Encoder trainiert werden?\n\n"
-                        "Geben Sie das Kürzel hinter der gewünschten Architektur an.\n"
+                        "Geben Sie das Kürzel hinter dem gewünschten Datensatz an.\n"
                         "Q*Bert - RGB JustQbert: 1\n"
                         "Q*Bert - RGB Mixed: 2\n"
                         "Q*bert - Graustufen: 3\n"
