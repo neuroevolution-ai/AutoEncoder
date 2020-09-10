@@ -49,18 +49,18 @@ if __name__ == '__main__':
     #Folgend sind Beispiele für die Datensätze QBert_SmallDataset_Mixed_Greyscale und SpaceInvaders_SmallDataset_Greyscale
     """Q*Bert"""
     test_data = []
-    create_arrayTest('/media/annika/Daten/QBert_SmallDataset_Mixed_Greyscale/Test')
+    create_arrayTest('datasets/QBert_SmallDataset_Mixed_Greyscale/Test')
     print(len(test_data))
     print(test_data[0].shape)
 
-    save_dataset('/home/annika/BA-Datensaetze/SmallDatasetTest_Q*Bert_Mixed_Greyscale.npy', test_data)
+    save_dataset('datasets/SmallDatasetTest_Q*Bert_Mixed_Greyscale.npy', test_data)
 
     training_data = []
-    create_arrayTraining('/media/annika/Daten/QBert_SmallDataset_Mixed_Greyscale/Training')
+    create_arrayTraining('datasets/QBert_SmallDataset_Mixed_Greyscale/Training')
     print(len(training_data))
     print(training_data[0].shape)
 
-    save_dataset('/home/annika/BA-Datensaetze/SmallDatasetTraining_Q*Bert_Mixed_Greyscale.npy', training_data)
+    save_dataset('datasets/SmallDatasetTraining_Q*Bert_Mixed_Greyscale.npy', training_data)
 
 
     """Space Invaders"""
@@ -68,9 +68,9 @@ if __name__ == '__main__':
     training_data1 = []
     training_data2 = []
 
-    for img_path in os.listdir('/media/annika/Daten/SpaceInvaders_SmallDataset_Greyscale/All'):
+    for img_path in os.listdir('datasets/SpaceInvaders_SmallDataset_Greyscale/All'):
 
-        path = os.path.join('/media/annika/Daten/SpaceInvaders_SmallDataset_Greyscale/All', img_path)
+        path = os.path.join('datasets/SpaceInvaders_SmallDataset_Greyscale/All', img_path)
         img = Image.open(path)
         img_array = asarray(img)
 
@@ -79,18 +79,18 @@ if __name__ == '__main__':
             if(len(test_data) == 19215):
                 print(len(test_data))
                 print(test_data[0].shape)
-                save_dataset('/home/annika/BA-Datensaetze/smallDatasetTest_SpaceInvaders_Greyscale.npy', test_data)
+                save_dataset('datasets/smallDatasetTest_SpaceInvaders_Greyscale.npy', test_data)
         else:
             if(len(training_data1) < 22418):
                 training_data1.append(img_array)
                 if (len(training_data1) == 22418):
                     print(len(training_data1))
                     print(training_data1[0].shape)
-                    save_dataset('/home/annika/BA-Datensaetze/smallDatasetTraining1_SpaceInvaders_Greyscale.npy', training_data1)
+                    save_dataset('datasets/smallDatasetTraining1_SpaceInvaders_Greyscale.npy', training_data1)
             else:
                 training_data2.append(img_array)
 
 
     print(len(training_data2))
     print(training_data2[0].shape)
-    save_dataset('/home/annika/BA-Datensaetze/smallDatasetTraining2_SpaceInvaders_Greyscale.npy', training_data2)
+    save_dataset('datasets/smallDatasetTraining2_SpaceInvaders_Greyscale.npy', training_data2)

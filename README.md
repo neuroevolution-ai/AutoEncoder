@@ -1,4 +1,4 @@
-# Bachelorarbeit
+# Beschreibung
 
 Die Dateien sind im Rahmen der Bachelorarbeit von Annika Kies am FZI Karlsruhe mit dem Titel
 "Entwicklung und Analyse von Auto-Encodern für intelligente Agenten zum Erlernen von Atari-Spielen"
@@ -23,10 +23,23 @@ Außerdem sind die Losswerte von Trainingsdatensatz und Testdatensatz im Trainin
 Aufbau des Ordners ist die Aufteilung der Auto-Encoder-Architektur und dann nach dem Datensatz, mit welchem trainiert worden ist.
 Der Auto-Encoder 4 in Graustufen- und RGB-Form erreicht die besten Ergebnisse.
 
-**Hinweis**
-Im Code sind die Dateipfade von verwendeten Dateien manuell gesetzt. Wenn der Code wiederverwendet werden soll, müssen Dateipfade neu gesetzt werden.
+#Install
+
+1. Clonen Sie das Repository
+2. Downloaden Sie die den notwendigen Datensatz: http://atarigrandchallenge.com/data und legen Sie ihn auf die selbe Ebene der Pythondateien im Repository
+    - **Hinweis**: Der Datensatz ist sehr groß! (>25GB)
+3. Folgende Pakete müssen für den Programmcode installiert werden
+    - Python3, folgen Sie den Installationshinweisen der Webseite: https://www.python.org/downloads/
+    - PyTorch, folgen Sie den Installationshinweisen der Webseite: https://pytorch.org/get-started/locally/
+    - Visdom (für die Visualisierung der Plots in AutoEncoderTraining.py), folgen Sie Installationshinweisen der Webseite: https://github.com/facebookresearch/visdom 
+        Für Weitere Hilfestellungen zum Start von Visdom während des Trainings, können Sie folgendes Tutorial befolgen: https://github.com/noagarcia/visdom-tutorial
+    - Matplotlib, folgen Sie den Installationshinweisen der Webseite: https://matplotlib.org/users/installing.html
 
 ## Datensatzgenerierung
+
+**Hinweis**: Die Pythondateien müssen in dieser Reihenfolge ausgeführt werden, damit der Datensatz zunächst klassifiziert
+wird, dann in neuen Ordnern erstellt (Die Bilder werden kopiert, damit man sich den Datensatz nochmal anschauen kann! Das bedeutet erneut einen hohen Speicherbedarf)
+und schließlich die .npy Dateien für das Training erstellt.
 
 Folgende PyTorch-Dateien enthalten Code für die Generierung von Trainings- und Testdatensätzen.
 

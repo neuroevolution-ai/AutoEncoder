@@ -28,7 +28,7 @@ Datensatz stammt von der Webseite: http://atarigrandchallenge.com/data
 if __name__ == '__main__':
     listOfAll = []
     listOfTop7 = []
-    folder = '/media/annika/Daten/BA-Datensaetze/atari_v2_release/trajectories/spaceinvaders'
+    folder = 'atari_v2_release/trajectories/spaceinvaders'
     for textFile_path in os.listdir(folder):
         path = os.path.join(folder, textFile_path)
         last_line = getLastLine(path)

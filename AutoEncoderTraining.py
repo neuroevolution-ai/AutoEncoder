@@ -25,7 +25,6 @@ Zur Orientierung diente das Tutorial https://www.kaggle.com/jagadeeshkotra/autoe
 Teile des Codes wurden aus dem Tutorial übernommen.
 """
 import sys
-
 import torch
 import torch.nn as nn
 from matplotlib import pyplot as plt
@@ -127,19 +126,19 @@ def startAE(autoencoder, dataset, grey, epochs):
         if (dataset == 'SmallDataset_Q*Bert_Mixed_Greyscale'):
             split = False
             datasetTrain = load_dataset(
-                '/home/annika/BA-Datensaetze/SmallDataset_Q*Bert_Mixed_Greyscale/SmallDatasetTraining_Q*Bert_Mixed_Greyscale.npy')
+                'datasets/SmallDataset_Q*Bert_Mixed_Greyscale/SmallDatasetTraining_Q*Bert_Mixed_Greyscale.npy')
             datasetTest = load_dataset(
-                '/home/annika/BA-Datensaetze/SmallDataset_Q*Bert_Mixed_Greyscale/SmallDatasetTest_Q*Bert_Mixed_Greyscale.npy')
+                'datasets/SmallDataset_Q*Bert_Mixed_Greyscale/SmallDatasetTest_Q*Bert_Mixed_Greyscale.npy')
             title = 'Auto-Encoder mit SmallDatasetTest_Q*Bert_Mixed_Greyscale'
 
         elif (dataset == 'SmallDataset_SpaceInvaders_Greyscale'):
             split = True
             datasetTrain = load_dataset(
-                '/home/annika/BA-Datensaetze/SmallDataset_SpaceInvaders_Greyscale/smallDatasetTraining1_SpaceInvaders_Greyscale.npy')
+                'datasets/SmallDataset_SpaceInvaders_Greyscale/smallDatasetTraining1_SpaceInvaders_Greyscale.npy')
             datasetTrain2 = load_dataset(
-                '/home/annika/BA-Datensaetze/SmallDataset_SpaceInvaders_Greyscale/smallDatasetTraining2_SpaceInvaders_Greyscale.npy')
+                'datasets/SmallDataset_SpaceInvaders_Greyscale/smallDatasetTraining2_SpaceInvaders_Greyscale.npy')
             datasetTest = load_dataset(
-                '/home/annika/BA-Datensaetze/SmallDataset_SpaceInvaders_Greyscale/smallDatasetTest_SpaceInvaders_Greyscale.npy')
+                'datasets/SmallDataset_SpaceInvaders_Greyscale/smallDatasetTest_SpaceInvaders_Greyscale.npy')
             title = 'Auto-Encoder mit SmallDataset_SpaceInvaders_Greyscale'
 
         # Bild aus dem Trainingsdatensatz laden, dient zur Kontrolle
@@ -157,24 +156,24 @@ def startAE(autoencoder, dataset, grey, epochs):
             split = True
             grey = False
             datasetTrain = load_dataset(
-                '/home/annika/BA-Datensaetze/SmallDataset_SpaceInvaders/smallDatasetTraining1_SpaceInvaders.npy')
+                'datasets/SmallDataset_SpaceInvaders/smallDatasetTraining1_SpaceInvaders.npy')
             datasetTrain2 = load_dataset(
-                '/home/annika/BA-Datensaetze/SmallDataset_SpaceInvaders/smallDatasetTraining2_SpaceInvaders.npy')
+                'datasets/SmallDataset_SpaceInvaders/smallDatasetTraining2_SpaceInvaders.npy')
             datasetTest = load_dataset(
-                '/home/annika/BA-Datensaetze/SmallDataset_SpaceInvaders/smallDatasetTest_SpaceInvaders.npy')
+                'datasets/SmallDataset_SpaceInvaders/smallDatasetTest_SpaceInvaders.npy')
             title = 'Auto-Encoder mit SmallDataset_SpaceInvaders'
         elif (dataset == 'SmallDataset_Q*Bert_Mixed'):
             split = False
             grey = False
-            datasetTrain = load_dataset('/home/annika/BA-Datensaetze/SmallDataset_Q*Bert_Mixed/smallDatasetTraining.npy')
-            datasetTest = load_dataset('/home/annika/BA-Datensaetze/SmallDataset_Q*Bert_Mixed/smallDatasetTest.npy')
+            datasetTrain = load_dataset('datasets/SmallDataset_Q*Bert_Mixed/smallDatasetTraining.npy')
+            datasetTest = load_dataset('datasets/SmallDataset_Q*Bert_Mixed/smallDatasetTest.npy')
             title = 'Auto-Encoder mit SmallDataset_Q*Bert_Mixed'
         elif (dataset == 'SmallDataset_JustQbert'):
             split = False
             grey = False
             datasetTrain = load_dataset(
-                '/home/annika/BA-Datensaetze/SmallDataset_JustQBert/smallDatasetTraining_JustQBert.npy')
-            datasetTest = load_dataset('/home/annika/BA-Datensaetze/SmallDataset_Q*Bert_Mixed/smallDatasetTest.npy')
+                'datasets/SmallDataset_JustQBert/smallDatasetTraining_JustQBert.npy')
+            datasetTest = load_dataset('datasets/SmallDataset_Q*Bert_Mixed/smallDatasetTest.npy')
             title = 'Auto-Encoder mit SmallDataset_Q*Bert_JustQBert'
 
         # Bild aus dem Trainingsdatensatz laden, dient zur Kontrolle
@@ -227,8 +226,8 @@ def startAE(autoencoder, dataset, grey, epochs):
         else:
             print('Der Auto-Encoder {} kann nicht mit dem Datensatz {} trainiert werden.'.format(autoencoder, dataset))
 
-
-    ae.to(torch.device("cuda:0"))
+    if torch.cuda.is_available():
+        ae.to(torch.device("cuda:0"))
     print(ae)
 
     # definiert die Loss-Funktion und den Optimizer
@@ -236,7 +235,6 @@ def startAE(autoencoder, dataset, grey, epochs):
     optimizer = torch.optim.Adamax(ae.parameters(), lr=4e-4)
 
     # startet den Plot
-    global plotter
     plotter = VisdomLinePlotter(env_name='Tutorial Plots')
 
 
@@ -248,25 +246,28 @@ def startAE(autoencoder, dataset, grey, epochs):
     else:
         iterationsTrain = (len(datasetTrain) // 1000)
         firstIterationTrain = iterationsTrain
-    rest = False
     if (len(datasetTrain) % 1000 != 0):
         iterationsTrain += 1
-        rest = True
 
     predictions = []
 
     for e in range(epochs):
         for i in range(iterationsTrain):
+
+            #Datensatz wird hier in Trainingssequenzen von 1000 Bildern aufgeteilt
             train_snippet = i + (e * iterationsTrain)
             losses = []
             startTrain = i * 1000
             stopTrain = ((i + 1) * 1000) - 1
+            #falls der Trainingsdatensatz in zwei Teilen vorliegt
             if (split):
+                #Teil 1
                 if (i + 1 < firstIterationTrain):
                     trainSetSnippet = datasetTrain[startTrain:stopTrain, :, :]
                 else:
                     if (i + 1 == firstIterationTrain):
                         trainSetSnippet = datasetTrain[startTrain:, :, :]
+                    # Teil 2
                     else:
                         startTrain = (i - firstIterationTrain) * 1000
                         stopTrain = ((i - firstIterationTrain + 1) * 1000) - 1
@@ -274,9 +275,12 @@ def startAE(autoencoder, dataset, grey, epochs):
                             trainSetSnippet = datasetTrain2[startTrain:, :, :]
                         else:
                             trainSetSnippet = datasetTrain2[startTrain:stopTrain, :, :]
+            #falls der Trainingsdatensatz in einem Teil vorliegt
             else:
+                #die nächsten 1000 Bilder aus dem Datensatz nehmen
                 if (i + 1 < firstIterationTrain):
                     trainSetSnippet = datasetTrain[startTrain:stopTrain, :, :]
+                #die letzten Bilder aus dem Datensatz nehmen
                 else:
                     trainSetSnippet = datasetTrain[startTrain:, :, :]
 
@@ -289,6 +293,7 @@ def startAE(autoencoder, dataset, grey, epochs):
             trn = TensorDataset(trn_torch, trn_torch)
             trn_dataloader = torch.utils.data.DataLoader(trn, batch_size=1, shuffle=False, num_workers=0)
 
+            # in einer Trainingssequenzen werden immer 430 Bilder aus dem Testdatensatz zur Validierung entnommen
             startTest = i * 430
             stopTest = ((i + 1) * 430) - 1
             if (i + 1 == iterationsTrain):

@@ -5,6 +5,7 @@ import torch.nn.functional as F
 
 """
 Auto-Encoder 4 - kann mit RGB-Bildern umgehen
+Hinweis: Padding und Abschneiden der Dimensionen wurde verwendet, um die Dimensionen auf die richtige Größe zu bringen
 """
 class AutoEncoder4(nn.Module):
 

@@ -4,6 +4,7 @@ import torch.nn.functional as F
 
 """
 Auto-Encoder 3 - kann mit Graustufen-Bildern umgehen
+Hinweis: Padding und Abschneiden der Dimensionen wurde verwendet, um die Dimensionen auf die richtige Größe zu bringen
 """
 class AutoEncoder3Grey(nn.Module):
     def __init__(self):
